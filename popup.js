@@ -152,14 +152,14 @@ document.addEventListener("DOMContentLoaded", function () {
       const response = await chatWithAI(fullPrompt, systemPrompt);
 
       // Display the response
+      let responseRow = document.getElementsByClassName("response-row")[0]; // Get the first match
       const responseDiv = document.getElementById("llm-response");
-      const copyBtn = document.getElementById("copy-btn");
 
       responseDiv.textContent = response;
       responseDiv.style.display = "block";
 
-      if (response.trim()) {
-        copyBtn.style.display = "block";
+      if (responseRow && response.trim()) {
+        responseRow.style.display = "block";
       }
     });
 
