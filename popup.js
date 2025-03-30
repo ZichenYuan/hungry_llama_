@@ -192,14 +192,14 @@ document.addEventListener("DOMContentLoaded", function () {
       const text = responseDiv.innerText;
       console.log("Text to copy:", text);
       
-      // navigator.clipboard
-      //   .writeText(text)
-      //   .then(() => {
-      //     alert("Copied to clipboard!");
-      //   })
-      //   .catch((err) => {
-      //     console.error("Failed to copy text: ", err);
-      //   });
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          alert("Copied to clipboard!");
+        })
+        .catch((err) => {
+          console.error("Failed to copy text: ", err);
+        });
     });
   }
 
