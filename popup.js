@@ -171,16 +171,16 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       // Display the response
+      let responseRow = document.getElementsByClassName("response-row")[0]; // Get the first match
       const responseDiv = document.getElementById("llm-response");
-      const copyBtn = document.getElementById("copy-btn");
 
       if (responseDiv) {
         responseDiv.textContent = response;
         responseDiv.style.display = "block";
       }
 
-      if (copyBtn && response && response.trim()) {
-        copyBtn.style.display = "block";
+      if (responseRow && copyBtn && response && response.trim()) {
+        responseRow.style.display = "block";
       }
     });
   }
