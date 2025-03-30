@@ -25,7 +25,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   if (message.action === 'getGoogleConfig') {
     sendResponse({ 
-      clientId: `861871143534-0pm2f391rbbm8k5t1lp6c5fpfbdsadan.apps.googleusercontent.com`,
+      // clientId: `861871143534-0pm2f391rbbm8k5t1lp6c5fpfbdsadan.apps.googleusercontent.com`,
+      clientId: process.env.GOOGLE_CLIENT_ID
     });
     return true;
   }
