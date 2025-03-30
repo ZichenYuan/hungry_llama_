@@ -5,7 +5,8 @@ module.exports = {
   mode: 'development',
   devtool: 'source-map', 
   entry: {
-    popup: './popup.js'
+    popup: './popup.js',
+    options: './options.js'
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -18,7 +19,9 @@ module.exports = {
         { from: 'manifest.json' },
         { from: 'popup.html' },
         { from: 'images', to: 'images' },
-        { from: 'styles.css'}
+        { from: 'styles.css'},
+        { from : 'options.html' },
+        { from : 'options.css' },
       ],
     }),
   ]
