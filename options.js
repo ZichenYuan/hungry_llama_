@@ -23,3 +23,11 @@ function restoreOptions() {
 
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.getElementById("save").addEventListener("click", saveOptions);
+
+document.addEventListener("DOMContentLoaded", function () {
+  document
+    .getElementById("back-to-popup")
+    .addEventListener("click", function () {
+      window.close();
+    });
+});

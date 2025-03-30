@@ -8,20 +8,44 @@ function updateStatus(message, isError = false) {
     statusDiv.textContent = message;
     console.log("Status updated:", message);
   }
-  if (isError) {
+  if (isError && statusDiv) {
     statusDiv.style.color = "red";
-  } else {
+  } else if (statusDiv) {
     statusDiv.style.color = "green";
   }
 }
 
-// Wait for DOM to be fully loaded
-document.addEventListener("DOMContentLoaded", function () {
-  console.log("DOM loaded");
+// ==================================== HELPER FUNCTIONS ====================================
+// Move getApiKey outside of any event listeners so it's globally available
+async function getApiKey() {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(["groqApiKey"], function (result) {
+      resolve(result.groqApiKey || null);
+    });
+  });
+}
 
-  // Update initial status
-  updateStatus("Extension loaded successfully!");
-});
+// Function to save response to history
+function saveToHistory(prompt, response) {
+  chrome.storage.local.get(["llamaHistory"], function (result) {
+    let history = result.llamaHistory || [];
+
+    // Add new item at the beginning
+    history.unshift({
+      prompt: prompt,
+      response: response,
+      timestamp: Date.now(),
+    });
+
+    // Keep only the last 10 items
+    if (history.length > 10) {
+      history = history.slice(0, 10);
+    }
+
+    // Save back to storage
+    chrome.storage.local.set({ llamaHistory: history });
+  });
+}
 
 // ==================================== LLM INTERACTION ====================================
 async function chatWithAI(userMessage, systemPrompt = "answer user message") {
@@ -37,7 +61,8 @@ async function chatWithAI(userMessage, systemPrompt = "answer user message") {
 
     if (!apiKey) {
       updateStatus(
-        "API key not found. Please set your Groq API key in the options.", true
+        "API key not found. Please set your Groq API key in the options.",
+        true
       );
       return "Error: API key not configured. Please set your Groq API key in the extension options.";
     }
@@ -83,66 +108,44 @@ async function chatWithAI(userMessage, systemPrompt = "answer user message") {
     }
   } catch (error) {
     console.error("Error calling Groq API:", error);
-    updateStatus(`Error calling AI: ${error.message}`);
-
-    // Fallback to hardcoded response in case of errors during development
-    const hardcodedResponse = {
-      choices: [
-        {
-          message: {
-            content: `This is a fallback response because we couldn't connect to the Groq API.
-              
-  In order to do a sum of a column in Excel, you can use the formula:
-  
-  =SUM(A1:A10)
-  
-  Where A1:A10 is the range of cells you want to sum. You can also use AVERAGE(), COUNT(), MAX(), or MIN() with similar syntax.`,
-          },
-        },
-      ],
-    };
-
-    return hardcodedResponse.choices[0].message.content;
+    updateStatus(`Error calling AI: ${error.message}`, true);
+    return `Error: ${error.message}`;
   }
 }
 
-// ==================================== HELPER ====================================
-
-// Update the event listener for the "Configure API key" link
-document.getElementById("open-options").addEventListener("click", function () {
-  window.open(chrome.runtime.getURL("options.html"));
-});
-
-async function getApiKey() {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get(["groqApiKey"], function (result) {
-      resolve(result.groqApiKey || null);
-    });
-  });
-}
-
+// Wait for DOM to be fully loaded
 document.addEventListener("DOMContentLoaded", function () {
-  document
-    .getElementById("ask-llm")
-    .addEventListener("click", async function () {
-      const userPrompt = document.getElementById("user-prompt").value;
-      if (!userPrompt) {
+  console.log("DOM loaded");
+
+  // Update initial status
+  updateStatus("Extension loaded successfully!");
+
+  // Event listener for the "Ask LLM" button
+  const askLlmButton = document.getElementById("ask-llm");
+  if (askLlmButton) {
+    askLlmButton.addEventListener("click", async function () {
+      const userPromptElement = document.getElementById("user-prompt");
+      if (!userPromptElement || !userPromptElement.value) {
         updateStatus("Please enter a question first");
         return;
       }
+      
+      const userPrompt = userPromptElement.value;
 
       // Get context from the current sheet (placeholder for now)
-      const sheetContext =
-        document.getElementById("sheet-data").textContent ||
+      const sheetDataElement = document.getElementById("sheet-data");
+      const sheetContext = sheetDataElement ? 
+        sheetDataElement.textContent || "No sheet data available" : 
         "No sheet data available";
 
       // System prompt focused on Excel/Google Sheets assistance
-      const systemPrompt =
-        `You are a Spreadsheets Copilot called Hungry Llama, a spreadsheets assistant that helps users analyze data and create formulas.
+      const systemPrompt = `
+        You are a Spreadsheets Copilot called Hungry Llama, a spreadsheets assistant that helps users analyze data and create formulas.
         Provide concise and helpful responses for spreadsheet-related questions.
         Your answers should be practical and easy to implement.
         Avoid unnecessary technical jargon unless specifically asked for it.
-        Response with only the formula or code needed, and no additional explanations by default.`;
+        Response with only the formula or code needed, and no additional explanations by default.
+        `;
 
       // Call the LLM with context if available
       const fullPrompt = sheetContext
@@ -150,30 +153,60 @@ document.addEventListener("DOMContentLoaded", function () {
         : userPrompt;
 
       const response = await chatWithAI(fullPrompt, systemPrompt);
+      
+      if (response && !response.startsWith("Error:")) {
+        saveToHistory(userPrompt, response);
+      }
 
       // Display the response
       let responseRow = document.getElementsByClassName("response-row")[0]; // Get the first match
       const responseDiv = document.getElementById("llm-response");
 
-      responseDiv.textContent = response;
-      responseDiv.style.display = "block";
+      if (responseDiv) {
+        responseDiv.textContent = response;
+        responseDiv.style.display = "block";
+      }
 
-      if (responseRow && response.trim()) {
+      if (responseRow && copyBtn && response && response.trim()) {
         responseRow.style.display = "block";
       }
     });
+  }
+
+  // ==================================== HELPERS ====================================
+
+  // Update the event listener for the "Configure API key" link
+  const optionsLink = document.getElementById("open-options");
+  if (optionsLink) {
+    optionsLink.addEventListener("click", function () {
+      window.open(chrome.runtime.getURL("options.html"));
+    });
+  }
 
   const copyBtn = document.getElementById("copy-btn");
-  copyBtn.addEventListener("click", function () {
-    const text = document.getElementById("llm-response").innerText;
-    console.log("Text to copy:", text);
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        alert("Copied to clipboard!");
-      })
-      .catch((err) => {
-        console.error("Failed to copy text: ", err);
-      });
-  });
+  if (copyBtn) {
+    copyBtn.addEventListener("click", function () {
+      const responseDiv = document.getElementById("llm-response");
+      if (!responseDiv) return;
+      
+      const text = responseDiv.innerText;
+      console.log("Text to copy:", text);
+      
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          alert("Copied to clipboard!");
+        })
+        .catch((err) => {
+          console.error("Failed to copy text: ", err);
+        });
+    });
+  }
+
+  const historyLink = document.getElementById("open-history");
+  if (historyLink) {
+    historyLink.addEventListener("click", function () {
+      window.open(chrome.runtime.getURL("history.html"));
+    });
+  }
 });
