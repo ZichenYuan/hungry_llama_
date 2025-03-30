@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // System prompt focused on Excel/Google Sheets assistance
       const systemPrompt =
-        `You are an Excel/Google Sheets assistant that helps users analyze data and create formulas.
+        `You are an spread Sheets assistant that helps users analyze data and create formulas.
         Provide concise and helpful responses for spreadsheet-related questions.
         Your answers should be practical and easy to implement.
         Avoid unnecessary technical jargon unless specifically asked for it.
