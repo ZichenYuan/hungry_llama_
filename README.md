@@ -1,4 +1,7 @@
-﻿# hungry_llama_
+# 🦙 Hungry Llama
+
+ ### Setup Instructions
+
 ```
 npm install
 npm run watch # auto updates
