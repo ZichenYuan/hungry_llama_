@@ -3,3 +3,6 @@ node_modules
 .env
 __pycache__/
 *.pyc
+credentials.json
+token.json
+credential.json
