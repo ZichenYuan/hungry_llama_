@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Excel Copilot",
+  "name": "Hungry Llama",
   "version": "1.0.0",
   "description": "A Chrome extension to interact with Google Sheets data",
   "permissions": [
@@ -12,7 +12,7 @@
   "host_permissions": [
     "https://docs.google.com/spreadsheets/*",
     "https://sheets.googleapis.com/*",
-    "http://localhost:1234/"
+    "https://api.groq.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -20,7 +20,10 @@
       "48": "images/icon48.png"
     }
   },
-
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
   "oauth2": {
     "client_id": "TODO: YOUR_CLIENT_ID.apps.googleusercontent.com",
     "scopes": [

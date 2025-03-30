@@ -34,72 +34,101 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==================================== LLM INTERACTION ====================================
-// THIS IS FAILING!!!!
-// Function to chat with LLaMA LLM
-async function chatWithLlama(
-  userMessage,
-  systemPrompt = "answer user message"
-) {
+async function chatWithAI(userMessage, systemPrompt = "answer user message") {
   try {
-    // API endpoint for chat completions
-    const endpoint = "http://localhost:1234/api/v0/chat/completions";
+    // Update status to show we're calling the LLM
+    updateStatus("Calling AI assistant for help...");
+
+    // API endpoint for Groq
+    const endpoint = "https://api.groq.com/openai/v1/chat/completions";
+
+    // Get API key from storage
+    const apiKey = await getApiKey();
+
+    if (!apiKey) {
+      updateStatus(
+        "API key not found. Please set your Groq API key in the options."
+      );
+      return "Error: API key not configured. Please set your Groq API key in the extension options.";
+    }
 
     // Prepare the request body
     const requestBody = {
-      model: "dolphin3.0-llama3.1-8b",
+      model: "llama-3.1-8b-instant",
       messages: [
         ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
         { role: "user", content: userMessage },
       ],
       temperature: 0.7,
-      max_tokens: 500,
-      stream: false,
+      max_tokens: 1000,
     };
 
-    // Update status to show we're calling the LLM
-    updateStatus("Calling LLM for assistance...");
-
     // Make the API call
-    // const response = await fetch(endpoint, {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify(requestBody),
-    //   mode: "cors",
-    // });
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    // Handle errors
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `API Error: ${errorData.error?.message || response.statusText}`
+      );
+    }
 
     // Parse and return the response
-    //  const result = await response.json();
+    const result = await response.json();
 
+    if (result.choices && result.choices.length > 0) {
+      updateStatus("Received AI response successfully");
+      return result.choices[0].message.content;
+    } else {
+      updateStatus("No response generated from AI");
+      return "No response generated";
+    }
+  } catch (error) {
+    console.error("Error calling Groq API:", error);
+    updateStatus(`Error calling AI: ${error.message}`);
+
+    // Fallback to hardcoded response in case of errors during development
     const hardcodedResponse = {
       choices: [
         {
           message: {
-            content: `This is a hardcoded response from the LLM.
-                In order to do a sum of a column in Excel, you can use the formula:
-                \`
-                =SUM(A1:A10)
-                \`
-                Where A1:A10 is the range of cells you want to sum`,
+            content: `This is a fallback response because we couldn't connect to the Groq API.
+              
+  In order to do a sum of a column in Excel, you can use the formula:
+  
+  =SUM(A1:A10)
+  
+  Where A1:A10 is the range of cells you want to sum. You can also use AVERAGE(), COUNT(), MAX(), or MIN() with similar syntax.`,
           },
         },
       ],
     };
-    const result = hardcodedResponse; // Use the hardcoded response for testing
 
-    if (result.choices && result.choices.length > 0) {
-      updateStatus("Received LLM response successfully");
-      return result.choices[0].message.content;
-    } else {
-      updateStatus("No response generated from LLM");
-      return "No response generated";
-    }
-  } catch (error) {
-    console.error("Error calling LLaMA chat API:", error);
-    updateStatus(`Error calling LLM: ${error.message}`);
-    return `Error: ${error.message}`;
+    return hardcodedResponse.choices[0].message.content;
   }
+}
+
+// ==================================== HELPER ====================================
+
+// Update the event listener for the "Configure API key" link
+document.getElementById("open-options").addEventListener("click", function () {
+  window.open(chrome.runtime.getURL("options.html"));
+});
+
+async function getApiKey() {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(["groqApiKey"], function (result) {
+      resolve(result.groqApiKey || null);
+    });
+  });
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -112,12 +141,21 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      // System prompt focused on Excel assistance
-      const systemPrompt =
-        "You are an Excel assistant that helps users analyze data and create formulas. Provide concise and helpful responses for Excel-related questions.";
+      // Get context from the current sheet (placeholder for now)
+      const sheetContext =
+        document.getElementById("sheet-data").textContent ||
+        "No sheet data available";
 
-      // Call the LLM
-      const response = await chatWithLlama(userPrompt, systemPrompt ?? null);
+      // System prompt focused on Excel/Google Sheets assistance
+      const systemPrompt =
+        "You are an Excel/Google Sheets assistant that helps users analyze data and create formulas. Provide concise and helpful responses for spreadsheet-related questions. Your answers should be practical and easy to implement.";
+
+      // Call the LLM with context if available
+      const fullPrompt = sheetContext
+        ? `Context from current sheet:\n${sheetContext}\n\nUser question: ${userPrompt}`
+        : userPrompt;
+
+      const response = await chatWithAI(fullPrompt, systemPrompt);
 
       // Display the response
       const responseDiv = document.getElementById("llm-response");
