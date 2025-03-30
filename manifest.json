@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Excel Copilot",
+  "version": "1.0.0",
+  "description": "A Chrome extension to interact with Google Sheets data",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "identity",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://docs.google.com/spreadsheets/*",
+    "https://sheets.googleapis.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "images/icon48.png"
+    }
+  },
+
+  "oauth2": {
+    "client_id": "TODO: YOUR_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/spreadsheets.readonly"
+    ]
+  }
+}
