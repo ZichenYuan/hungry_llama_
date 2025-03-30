@@ -409,13 +409,16 @@ async function loadSheetData() {
 
     // Get the spreadsheet ID from the current tab
     const spreadsheetId = await getActiveSpreadsheetId();
+    console.log("Spreadsheet ID:", spreadsheetId);
 
     // Get auth token
     const token = await getAuthToken();
+    console.log("Auth token:", token);
 
     // Get the selected range data
     const sheetInfo = await getSelectedRange(token, spreadsheetId);
-
+    console.log("HEREREEEE")
+    console.log("Sheet info:", sheetInfo);
     // Update UI with sheet info
     populateSheetInfo(sheetInfo);
 
@@ -437,74 +440,67 @@ async function loadSheetData() {
 }
 
 
-// async function getAuthToken() {
-//   console.log("Requesting auth token...");
-//   return new Promise((resolve, reject) => {
-//     chrome.identity.getAuthToken({ interactive: true }, function(token) {
-//       if (chrome.runtime.lastError) {
-//         console.error("Authentication error:", chrome.runtime.lastError);
-//         // Log more details about the error
-//         console.error("Error details:", JSON.stringify(chrome.runtime.lastError));
-//         reject(chrome.runtime.lastError);
-//         return;
-//       }
-//       console.log("Successfully obtained auth token:");
-//       console.log("Token exists:", !!token);
-//       console.log("Token length:", token ? token.length : 0);
-//       resolve(token);
-//     });
-//   });
-// }
-
 async function getAuthToken() {
   console.log("Requesting auth token...");
-  console.log("Extension ID:", chrome.runtime.id);
-  
-  // Debug manifest info
-  const manifest = chrome.runtime.getManifest();
-  console.log("OAuth config from manifest:", manifest.oauth2);
-  
   return new Promise((resolve, reject) => {
-    const options = { 
-      interactive: true
-      // Remove the 'details' property - it's not a valid option
-    };
-    
-    chrome.identity.getAuthToken(options, function(token) {
+    chrome.identity.getAuthToken({ interactive: true }, function(token) {
       if (chrome.runtime.lastError) {
         console.error("Authentication error:", chrome.runtime.lastError);
+        // Log more details about the error
         console.error("Error details:", JSON.stringify(chrome.runtime.lastError));
-        
-        // Try to get more details about the error
-        if (chrome.runtime.lastError.message && chrome.runtime.lastError.message.includes("bad client id")) {
-          console.error("Client ID issue detected - checking configuration...");
-          // Log current extension ID vs what might be registered
-          console.log("Current extension ID:", chrome.runtime.id);
-          console.log("OAuth Client ID from manifest:", manifest.oauth2?.client_id);
-        }
-        
         reject(chrome.runtime.lastError);
         return;
       }
-      
-      console.log("Successfully obtained auth token!");
+      console.log("Successfully obtained auth token:");
       console.log("Token exists:", !!token);
       console.log("Token length:", token ? token.length : 0);
-      // Log the first few characters of the token (safe to do for debugging)
-      if (token) {
-        console.log("Token preview:", token.substring(0, 5) + "...");
-      }
-      
       resolve(token);
     });
   });
 }
 
-// Function to extract the current spreadsheet ID from the URL
-function getSpreadsheetIdFromUrl(url) {
-  const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-  if (match && match[1]) {
-    return match[1];
-  }
-  return null;
-}
+// async function getAuthToken() {
+//   console.log("Requesting auth token...");
+//   console.log("Extension ID:", chrome.runtime.id);
+  
+//   // Debug manifest info
+//   const manifest = chrome.runtime.getManifest();
+//   console.log("OAuth config from manifest:", manifest.oauth2);
+  
+//   return new Promise((resolve, reject) => {
+//     const options = { 
+//       interactive: true
+//       // Remove the 'details' property - it's not a valid option
+//     };
+    
+//     chrome.identity.getAuthToken(options, function(token) {
+//       if (chrome.runtime.lastError) {
+//         console.error("Authentication error:", chrome.runtime.lastError);
+//         console.error("Error details:", JSON.stringify(chrome.runtime.lastError));
+        
+//         // Try to get more details about the error
+//         if (chrome.runtime.lastError.message && chrome.runtime.lastError.message.includes("bad client id")) {
+//           console.error("Client ID issue detected - checking configuration...");
+//           // Log current extension ID vs what might be registered
+//           console.log("Current extension ID:", chrome.runtime.id);
+//           console.log("OAuth Client ID from manifest:", manifest.oauth2?.client_id);
+//         }
+        
+//         reject(chrome.runtime.lastError);
+//         return;
+//       }
+      
+//       console.log("Successfully obtained auth token!");
+//       console.log("Token exists:", !!token);
+//       console.log("Token length:", token ? token.length : 0);
+//       // Log the first few characters of the token (safe to do for debugging)
+//       if (token) {
+//         console.log("Token preview:", token.substring(0, 5) + "...");
+//       }
+      
+//       resolve(token);
+//     });
+//   });
+// }
+
+

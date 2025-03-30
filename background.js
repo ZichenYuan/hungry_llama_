@@ -1,9 +1,6 @@
 // background.js - Service worker for the Chrome extension
 console.log('Hungry Llama background script loaded');
 
-// Import configuration
-import CONFIG from './config.js';
-
 // Handle installation
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {

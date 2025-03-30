@@ -1,13 +1,18 @@
 import path from "path";
+import { fileURLToPath } from 'url';
 import CopyPlugin from "copy-webpack-plugin";
 import webpack from "webpack";
 import dotenv from "dotenv";
 
 // Load environment variables
 dotenv.config();
-const result = dotenv.config();
-console.log('DOTENV RESULT:', result);
-console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
+
+// Get dirname in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+console.log("DOTENV RESULT:", dotenv.config());
+console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
 
 export default {
   mode: "development",
@@ -15,23 +20,31 @@ export default {
   entry: {
     popup: "./popup.js",
     options: "./options.js",
-    history: './history.js',
-    config: './config.js',
-    background: './background.js'
+    history: "./history.js",
+    config: "./config.js",
+    background: "./background.js"
   },
   output: {
-    path: path.resolve("dist"),
+    path: path.resolve(__dirname, "dist"),
     filename: "[name].js",
     clean: true,
+  },
+  experiments: {
+    outputModule: false
   },
   plugins: [
     // Define plugin for environment variables
     new webpack.DefinePlugin({
-      'process.env.GOOGLE_CLIENT_ID': JSON.stringify(process.env.GOOGLE_CLIENT_ID),
-      'process.env.GOOGLE_CLIENT_SECRET': JSON.stringify(process.env.GOOGLE_CLIENT_SECRET)
+      "process.env.GOOGLE_CLIENT_ID": JSON.stringify(
+        process.env.GOOGLE_CLIENT_ID
+      ),
+      "process.env.GOOGLE_CLIENT_SECRET": JSON.stringify(
+        process.env.GOOGLE_CLIENT_SECRET
+      ),
     }),
     new CopyPlugin({
       patterns: [
+        { from: "manifest.json", to: "manifest.json" },
         { from: "popup.html" },
         { from: "images", to: "images" },
         { from: "styles.css" },
@@ -42,4 +55,8 @@ export default {
       ],
     }),
   ],
+  // Add this to handle modules properly for background service worker
+  resolve: {
+    extensions: ['.js', '.json']
+  }
 };
