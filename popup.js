@@ -237,19 +237,6 @@ Response with only the formula or code needed, and no additional explanations by
 
 // ==================================== READING SHEETS ====================================
 
-// Function to get auth token using Chrome Identity API
-async function getAuthToken() {
-  return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive: true }, function (token) {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-        return;
-      }
-      resolve(token);
-    });
-  });
-}
-
 // Function to get the active spreadsheet ID from the current tab
 async function getActiveSpreadsheetId() {
   return new Promise((resolve, reject) => {
