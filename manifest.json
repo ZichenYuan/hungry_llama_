@@ -2,18 +2,23 @@
   "manifest_version": 3,
   "name": "Hungry Llama",
   "version": "1.0.0",
-  "description": "A Chrome extension to interact with Google Sheets data",
+  "description": "A Chrome extension to interact with Google Sheets data using Groq AI",
   "permissions": [
     "activeTab",
     "storage",
     "identity",
-    "scripting"
+    "scripting",
+    "tabs"
   ],
   "host_permissions": [
     "https://docs.google.com/spreadsheets/*",
     "https://sheets.googleapis.com/*",
     "https://api.groq.com/*"
   ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -25,7 +30,7 @@
     "open_in_tab": true
   },
   "oauth2": {
-    "client_id": "TODO: YOUR_CLIENT_ID.apps.googleusercontent.com",
+    "client_id": "${CLIENT_ID}",
     "scopes": [
       "https://www.googleapis.com/auth/spreadsheets.readonly"
     ]

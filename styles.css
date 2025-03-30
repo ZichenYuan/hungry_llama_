@@ -35,6 +35,7 @@ body {
     overflow-y: auto;
     border: 1px solid #ccc;
     padding: 8px;
+    margin-bottom: 10px;
   }
 
   #user-prompt {
@@ -89,3 +90,59 @@ body {
   .settings-link a:hover {
     background-color: #e0e0e0;
   }
+
+
+
+
+  /* Add these styles to your styles.css file */
+
+#selected-sheet-info {
+  margin-top: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 15px;
+  background-color: #f9f9f9;
+  font-size: 13px;
+}
+
+#selected-sheet-info h4, #selected-sheet-info h5 {
+  margin: 0 0 8px 0;
+  color: #4285f4;
+}
+
+#selected-sheet-info p {
+  margin: 3px 0;
+}
+
+.table-container {
+  margin-top: 10px;
+  overflow-x: auto;
+}
+
+.sheet-preview {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+}
+
+.sheet-preview th, .sheet-preview td {
+  border: 1px solid #ddd;
+  padding: 4px;
+  text-align: left;
+}
+
+.sheet-preview th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+  text-align: center;
+}
+
+.info-message {
+  padding: 10px;
+  background-color: #e8f4f8;
+  border-left: 4px solid #4285f4;
+  margin: 10px 0;
+}

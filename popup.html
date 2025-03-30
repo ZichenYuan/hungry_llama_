@@ -7,23 +7,23 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <h2>Spreadsheets Copilot:</h2>
+    <h2>Hungry Llama 🦙</h2>
     <div id="status">Ready to start</div>
     <div id="selected-sheet-info"></div>
     <div class="section">
-        <h3>Hungry Llama 🦙</h3>
-        <textarea id="user-prompt" placeholder="Ask a question about your Excel data..." rows="3"></textarea>
+        <textarea id="user-prompt" placeholder="Feed me with your spreadsheet data..." rows="3"></textarea>
         <button id="ask-llm">Ask LLM</button>
         <div class="response-row" style="display: none;">
           <div id="llm-response" class="response-area" readonly></div>
           <button id="copy-btn">📋</button>
         </div>
-      </div>
     </div>
     <div class="settings-link">
       <a href="#" id="open-options">Configure API key</a>
       <a href="#" id="open-history">History</a>
     </div>
     <script src="popup.js"></script>
+    <script src="config.js"></script>
+    <script src="sheets.js"></script>
   </body>
 </html>

@@ -84,54 +84,137 @@ async function getAuthClient() {
     return oauth2Client;
 }
 
+// Function to get values from a specific range
+function getValues(sheets, spreadsheetId, range, callback) {
+    try {
+      sheets.spreadsheets.values.get({
+        spreadsheetId: spreadsheetId,
+        range: range,
+      }).then((response) => {
+        const result = response.data;
+        const numRows = result.values ? result.values.length : 0;
+        console.log(`${numRows} rows retrieved.`);
+        if (callback) callback(response);
+        return response.data;
+      });
+    } catch (err) {
+      console.error('Error getting values:', err);
+      return null;
+    }
+}
+
+// Function to get all data from an entire sheet
+async function getEntireSheet(sheets, spreadsheetId, sheetName) {
+    try {
+        // First get the sheet metadata to understand its dimensions
+        const metadataResponse = await sheets.spreadsheets.get({
+            spreadsheetId: spreadsheetId
+        });
+        
+        // Find the specific sheet
+        const sheet = metadataResponse.data.sheets.find(s => 
+            s.properties.title === sheetName);
+        
+        if (!sheet) {
+            console.error(`Sheet "${sheetName}" not found`);
+            return null;
+        }
+        
+        // Get sheet dimensions
+        const gridProps = sheet.properties.gridProperties;
+        const rowCount = gridProps.rowCount;
+        const colCount = gridProps.columnCount;
+        
+        // Request all data in the sheet using A1 notation
+        // A1:ZZ1000 is a common pattern to get everything, but better to use actual dimensions
+        const range = `${sheetName}!A1:${columnToLetter(colCount)}${rowCount}`;
+        
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: spreadsheetId,
+            range: range
+        });
+        
+        console.log(`Retrieved entire sheet "${sheetName}": ${response.data.values ? response.data.values.length : 0} rows`);
+        return response.data.values;
+    } catch (err) {
+        console.error('Error retrieving entire sheet:', err);
+        return null;
+    }
+}
+
+// Helper function to convert column number to letter (e.g., 1 -> A, 27 -> AA)
+function columnToLetter(column) {
+    let letter = '';
+    while (column > 0) {
+        const remainder = (column - 1) % 26;
+        letter = String.fromCharCode(65 + remainder) + letter;
+        column = Math.floor((column - 1) / 26);
+    }
+    return letter;
+}
+
+function printResponse(response) {
+  console.log('Spreadsheet response:', response);
+}
+
 async function main() {
     try {
         const auth = await getAuthClient();
         const sheets = google.sheets({ version: 'v4', auth });
         
-        // First get the spreadsheet metadata
+        // Get the spreadsheet metadata first
         const metadata = await sheets.spreadsheets.get({
-            spreadsheetId: '1og5gsFY1SKIRNANwFgtg_8dEgpnFocRIgg6zNvyC23U',
+            spreadsheetId: '1dRqe-ez6yNdbSEt7D4d_yBlchfLECgvZX0Z6UBYePJY'
         });
         
         console.log('Successfully connected to Google Sheets!');
         console.log('Spreadsheet title:', metadata.data.properties.title);
         
-        // Get all sheets in the spreadsheet
-        const sheetsList = metadata.data.sheets;
+        // Get list of sheets
         console.log('\nAvailable sheets:');
-        sheetsList.forEach(sheet => {
+        metadata.data.sheets.forEach(sheet => {
             console.log(`- ${sheet.properties.title}`);
         });
-
-        // Read data from each sheet
-        for (const sheet of sheetsList) {
-            const sheetTitle = sheet.properties.title;
-            console.log(`\nReading data from sheet: ${sheetTitle}`);
+        
+        // Get the entire first sheet
+        if (metadata.data.sheets.length > 0) {
+            const firstSheetName = metadata.data.sheets[0].properties.title;
+            console.log(`\nGetting all data from sheet: ${firstSheetName}`);
             
-            try {
-                const response = await sheets.spreadsheets.values.get({
-                    spreadsheetId: '1og5gsFY1SKIRNANwFgtg_8dEgpnFocRIgg6zNvyC23U',
-                    range: sheetTitle,
-                });
-
-                const rows = response.data.values;
-                if (rows && rows.length) {
-                    console.log('Data:');
-                    rows.forEach((row, index) => {
-                        console.log(`Row ${index + 1}:`, row.join(', '));
-                    });
-                } else {
-                    console.log('No data found in this sheet.');
-                }
-            } catch (error) {
-                console.error(`Error reading sheet ${sheetTitle}:`, error.message);
+            const entireSheet = await getEntireSheet(sheets, '1dRqe-ez6yNdbSEt7D4d_yBlchfLECgvZX0Z6UBYePJY', firstSheetName);
+            
+            if (entireSheet) {
+                console.log('\nEntire sheet data:');
+                
+                // Format the output with column letters
+                const formattedData = formatSheetWithColumnLetters(entireSheet);
+                console.table(formattedData);
             }
         }
-        
-    } catch (error) {
-        console.error('Error:', error);
+    }
+    catch(error){
+        console.log(error);
     }
 }
 
+// Execute the main function
 main();
+
+// Helper function to format sheet data with column letters
+function formatSheetWithColumnLetters(sheetData) {
+    if (!sheetData || sheetData.length === 0) {
+        return [];
+    }
+    
+    // Create an object with column letters as keys
+    return sheetData.map((row, rowIndex) => {
+        const rowObj = {};
+        
+        // Add each cell with column letter as key
+        row.forEach((cell, colIndex) => {
+            rowObj[columnToLetter(colIndex + 1)] = cell;
+        });
+        
+        return rowObj;
+    });
+}
