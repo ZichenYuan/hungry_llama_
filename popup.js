@@ -102,37 +102,46 @@ async function chatWithLlama(
   }
 }
 
-// Add this to your DOMContentLoaded event handler
-document.getElementById("ask-llm").addEventListener("click", async function () {
-  const userPrompt = document.getElementById("user-prompt").value;
-  if (!userPrompt) {
-    updateStatus("Please enter a question first");
-    return;
-  }
-
-  // System prompt focused on Excel assistance
-  const systemPrompt =
-    "You are an Excel assistant that helps users analyze data and create formulas. Provide concise and helpful responses for Excel-related questions.";
-
-  // Call the LLM
-  const response = await chatWithLlama(userPrompt, systemPrompt ?? null);
-
-  // Display the response
-  const responseDiv = document.getElementById("llm-response");
-  responseDiv.textContent = response;
-  responseDiv.style.display = "block";
-});
-
 document.addEventListener("DOMContentLoaded", function () {
+  document
+    .getElementById("ask-llm")
+    .addEventListener("click", async function () {
+      const userPrompt = document.getElementById("user-prompt").value;
+      if (!userPrompt) {
+        updateStatus("Please enter a question first");
+        return;
+      }
+
+      // System prompt focused on Excel assistance
+      const systemPrompt =
+        "You are an Excel assistant that helps users analyze data and create formulas. Provide concise and helpful responses for Excel-related questions.";
+
+      // Call the LLM
+      const response = await chatWithLlama(userPrompt, systemPrompt ?? null);
+
+      // Display the response
+      const responseDiv = document.getElementById("llm-response");
+      const copyBtn = document.getElementById("copy-btn");
+
+      responseDiv.textContent = response;
+      responseDiv.style.display = "block";
+
+      if (response.trim()) {
+        copyBtn.style.display = "block";
+      }
+    });
+
   const copyBtn = document.getElementById("copy-btn");
   copyBtn.addEventListener("click", function () {
     const text = document.getElementById("llm-response").innerText;
     console.log("Text to copy:", text);
-    navigator.clipboard.writeText(text).then(() => {
-      alert("Copied to clipboard!");
-    }).catch(err => {
-      console.error("Failed to copy text: ", err);
-    });
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        alert("Copied to clipboard!");
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
   });
 });
-
