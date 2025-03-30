@@ -5,6 +5,9 @@ import dotenv from "dotenv";
 
 // Load environment variables
 dotenv.config();
+const result = dotenv.config();
+console.log('DOTENV RESULT:', result);
+console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
 
 export default {
   mode: "development",
@@ -13,7 +16,8 @@ export default {
     popup: "./popup.js",
     options: "./options.js",
     history: './history.js',
-    config: './config.js'
+    config: './config.js',
+    background: './background.js'
   },
   output: {
     path: path.resolve("dist"),
@@ -28,18 +32,6 @@ export default {
     }),
     new CopyPlugin({
       patterns: [
-        // This will replace the CLIENT_ID in manifest.json with the one from the .env file
-        {
-          from: "manifest.json",
-          transform(content) {
-            return content
-              .toString()
-              .replace(
-                /\${CLIENT_ID}/g,
-                process.env.GOOGLE_CLIENT_ID || "MISSING_CLIENT_ID"
-              );
-          },
-        },
         { from: "popup.html" },
         { from: "images", to: "images" },
         { from: "styles.css" },

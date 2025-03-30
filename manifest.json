@@ -16,8 +16,7 @@
     "https://api.groq.com/*"
   ],
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
+    "service_worker": "background.js"
   },
   "action": {
     "default_popup": "popup.html",
@@ -30,7 +29,7 @@
     "open_in_tab": true
   },
   "oauth2": {
-    "client_id": "${CLIENT_ID}",
+    "client_id": "861871143534-0pm2f391rbbm8k5t1lp6c5fpfbdsadan.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/spreadsheets.readonly"
     ]

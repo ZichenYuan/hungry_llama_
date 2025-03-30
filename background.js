@@ -28,8 +28,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   if (message.action === 'getGoogleConfig') {
     sendResponse({ 
-      clientId: CONFIG.GOOGLE_CLIENT_ID,
-      // Don't send the client secret to the frontend for security reasons
+      clientId: `861871143534-0pm2f391rbbm8k5t1lp6c5fpfbdsadan.apps.googleusercontent.com`,
     });
     return true;
   }
