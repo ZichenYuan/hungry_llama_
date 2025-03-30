@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("DOM loaded");
 
   // Update initial status
-  updateStatus("Extension loaded successfully!");
+  updateStatus("Your Spreadsheets Copilot is ready!");
     // Populate selected sheet info with sample data for testing
     const selectedSheetInfo = document.getElementById("selected-sheet-info");
     if (selectedSheetInfo) {
