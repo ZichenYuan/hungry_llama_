@@ -125,11 +125,8 @@ document.addEventListener("DOMContentLoaded", function () {
   if (selectedSheetInfo) {
     // Sample data - in a real implementation, this would come from the active sheet
     selectedSheetInfo.innerHTML = `
-        <h4>Selected Cell Information:</h4>
-        <p><strong>Cell:</strong> A1</p>
-        <p><strong>Value:</strong> Sales</p>
-        <p><strong>Formula:</strong> None</p>
-        <p><strong>Range:</strong> A1:D5</p>
+        <h4>Selected Placeholder Cell:</h4>
+
       `;
   }
 
