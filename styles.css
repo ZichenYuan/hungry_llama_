@@ -24,13 +24,19 @@ body {
     border: 1px solid #ddd;
     background-color: #f8f8f8;
   }
-  #sheet-data {
+  
+  .settings-link a:hover {
+    background-color: #e0e0e0;
+  }
+  
+  #selected-sheet-info {
     margin-top: 10px;
     max-height: 300px;
     overflow-y: auto;
     border: 1px solid #ccc;
     padding: 8px;
   }
+
   #user-prompt {
     width: 100%;
     margin-bottom: 10px;

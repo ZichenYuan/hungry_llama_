@@ -119,6 +119,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Update initial status
   updateStatus("Extension loaded successfully!");
+    // Populate selected sheet info with sample data for testing
+    const selectedSheetInfo = document.getElementById("selected-sheet-info");
+    if (selectedSheetInfo) {
+      // Sample data - in a real implementation, this would come from the active sheet
+      selectedSheetInfo.innerHTML = `
+        <h4>Selected Cell Information:</h4>
+        <p><strong>Cell:</strong> A1</p>
+        <p><strong>Value:</strong> Sales</p>
+        <p><strong>Formula:</strong> None</p>
+        <p><strong>Range:</strong> A1:D5</p>
+      `;
+    }
 
   // Event listener for the "Ask LLM" button
   const askLlmButton = document.getElementById("ask-llm");
