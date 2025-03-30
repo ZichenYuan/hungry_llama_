@@ -1,5 +1,10 @@
 import path from "path";
 import CopyPlugin from "copy-webpack-plugin";
+import webpack from "webpack";
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 export default {
   mode: "development",
@@ -7,7 +12,8 @@ export default {
   entry: {
     popup: "./popup.js",
     options: "./options.js",
-    history: './history.js'
+    history: './history.js',
+    config: './config.js'
   },
   output: {
     path: path.resolve("dist"),
@@ -15,9 +21,25 @@ export default {
     clean: true,
   },
   plugins: [
+    // Define plugin for environment variables
+    new webpack.DefinePlugin({
+      'process.env.GOOGLE_CLIENT_ID': JSON.stringify(process.env.GOOGLE_CLIENT_ID),
+      'process.env.GOOGLE_CLIENT_SECRET': JSON.stringify(process.env.GOOGLE_CLIENT_SECRET)
+    }),
     new CopyPlugin({
       patterns: [
-        { from: "manifest.json" },
+        // This will replace the CLIENT_ID in manifest.json with the one from the .env file
+        {
+          from: "manifest.json",
+          transform(content) {
+            return content
+              .toString()
+              .replace(
+                /REPLACE_WITH_YOUR_CLIENT_ID_FROM_ENV_FILE/g,
+                process.env.GOOGLE_CLIENT_ID || "MISSING_CLIENT_ID"
+              );
+          },
+        },
         { from: "popup.html" },
         { from: "images", to: "images" },
         { from: "styles.css" },
