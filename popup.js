@@ -54,35 +54,35 @@ let currentSheetData = null;
 async function loadSheetData() {
   try {
     updateStatus("Reading spreadsheet data...");
-    
+
     // Get the spreadsheet ID from the current tab
     const spreadsheetId = await getActiveSpreadsheetId();
     console.log("Spreadsheet ID:", spreadsheetId);
-    
+
     // Get auth token
     const token = await getAuthToken();
     console.log("Auth token:", token);
-    
+
     // Get the selected range data
     const sheetInfo = await getSelectedRange(token, spreadsheetId);
     console.log("Sheet info:", sheetInfo);
-    
+
     // Store the sheet data globally
     currentSheetData = {
       data: sheetInfo.data,
       sheetTitle: sheetInfo.sheetTitle,
       spreadsheetTitle: sheetInfo.spreadsheetTitle,
-      range: sheetInfo.range
+      range: sheetInfo.range,
     };
-    
+
     // Update UI with sheet info
     populateSheetInfo(sheetInfo);
-    
+
     updateStatus("Ready to assist with your sheet data!");
   } catch (error) {
     console.error("Error loading sheet data:", error);
     currentSheetData = null;
-    
+
     // If not on a Google Sheet page, show a friendly message
     if (error.message === "Current tab is not a Google Spreadsheet") {
       updateStatus("Open a Google Sheet to analyze data", true);
@@ -96,7 +96,6 @@ async function loadSheetData() {
     }
   }
 }
-
 
 // ==================================== LLM INTERACTION ====================================
 async function chatWithAI(userMessage, systemPrompt = "answer user message") {
@@ -117,10 +116,13 @@ async function chatWithAI(userMessage, systemPrompt = "answer user message") {
       );
       return "Error: API key not configured. Please set your Groq API key in the extension options.";
     }
-    console.log("CURRENT sheet data:", currentSheetData.data);
     // Format the sheet data in a structured way that's easy for the LLM to understand
     let formattedSheetData = "";
-    if (currentSheetData && currentSheetData.data && currentSheetData.data.length > 0) {
+    if (
+      currentSheetData &&
+      currentSheetData.data &&
+      currentSheetData.data.length > 0
+    ) {
       // Add sheet metadata
       formattedSheetData = `
 Spreadsheet Name: ${currentSheetData.spreadsheetTitle}
@@ -128,36 +130,104 @@ Sheet Name: ${currentSheetData.sheetTitle}
 Range: ${currentSheetData.range}
 Size: ${currentSheetData.data.length} rows × ${currentSheetData.data[0].length} columns
 
-Data in CSV format:
+SPREADSHEET DATA (TABULAR FORMAT):
 `;
-      
-      // Format the data as a CSV with column headers
-      // Assuming first row contains headers
-      if (currentSheetData.data.length > 0) {
-        // Generate column letters for the header if needed
-        const headers = currentSheetData.data[0].map((cell, index) => 
-          cell || columnToLetter(index + 1)
-        );
-        
-        // Add CSV header row
-        formattedSheetData += headers.join(",") + "\n";
-        
-        // Add data rows (skip first row if it's headers)
+
+      // First, create a table header with column letters
+      let columnLetters = [];
+      for (let i = 0; i < currentSheetData.data[0].length; i++) {
+        columnLetters.push(columnToLetter(i + 1));
+      }
+
+      // Add column headers row with letters
+      formattedSheetData += "Row | " + columnLetters.join(" | ") + "\n";
+      formattedSheetData += "-".repeat(6 + columnLetters.length * 4) + "\n";
+
+      // Then add each row with row numbers and clear column separation
+      for (let i = 0; i < currentSheetData.data.length; i++) {
+        const rowNum = i + 1;
+        const row = currentSheetData.data[i];
+        if (!row) continue;
+
+        formattedSheetData +=
+          `${rowNum.toString().padStart(2)} | ` +
+          row
+            .map((cell) =>
+              cell !== undefined && cell !== null ? cell.toString() : ""
+            )
+            .join(" | ") +
+          "\n";
+      }
+
+      // Add explicit column mapping
+      formattedSheetData += "\nCOLUMN MAPPING:\n";
+      if (
+        currentSheetData.data.length > 0 &&
+        currentSheetData.data[0].length > 0
+      ) {
+        const headers = currentSheetData.data[0];
+        for (let i = 0; i < headers.length; i++) {
+          formattedSheetData += `Column ${columnToLetter(i + 1)}: ${
+            headers[i] || "No header"
+          }\n`;
+        }
+      }
+
+      // Add examples of how to reference this data correctly
+      formattedSheetData += `
+FORMULA REFERENCE EXAMPLES:
+- To reference all data in first column (Column A) starting from row 2: ${currentSheetData.sheetTitle}!A2:A${currentSheetData.data.length}
+- To reference all data in second column (Column B) starting from row 2: ${currentSheetData.sheetTitle}!B2:B${currentSheetData.data.length}
+`;
+
+      // Add data-specific formula examples if we can detect what's in the data
+      if (
+        currentSheetData.data.length > 1 &&
+        currentSheetData.data[0].length > 1
+      ) {
+        // Check if second column might contain numeric data (like ages)
+        const secondColHeader = currentSheetData.data[0][1] || "Column B";
+        let hasNumericData = false;
+
+        // Skip header row and check if data rows contain numbers in second column
         for (let i = 1; i < currentSheetData.data.length; i++) {
-          const row = currentSheetData.data[i];
-          if (!row) continue; // Skip undefined rows
-          
-          // Format each cell, handle empty cells, and escape commas
-          const formattedRow = row.map(cell => 
-            cell ? `"${cell.toString().replace(/"/g, '""')}"` : ""
-          );
-          formattedSheetData += formattedRow.join(",") + "\n";
+          if (
+            currentSheetData.data[i] &&
+            currentSheetData.data[i][1] !== undefined &&
+            !isNaN(parseFloat(currentSheetData.data[i][1]))
+          ) {
+            hasNumericData = true;
+            break;
+          }
+        }
+
+        if (hasNumericData) {
+          formattedSheetData += `
+NUMERIC OPERATIONS FOR ${secondColHeader.toUpperCase()} (COLUMN B):
+- To calculate average: =AVERAGE(${currentSheetData.sheetTitle}!B2:B${
+            currentSheetData.data.length
+          })
+- To find maximum value: =MAX(${currentSheetData.sheetTitle}!B2:B${
+            currentSheetData.data.length
+          })
+- To find minimum value: =MIN(${currentSheetData.sheetTitle}!B2:B${
+            currentSheetData.data.length
+          })
+- To get sum of all values: =SUM(${currentSheetData.sheetTitle}!B2:B${
+            currentSheetData.data.length
+          })
+- To count non-empty cells: =COUNT(${currentSheetData.sheetTitle}!B2:B${
+            currentSheetData.data.length
+          })
+`;
         }
       }
     }
 
+    console.log("FORMATTED SHEET DATA:", formattedSheetData);
+
     // Combine the user's message with the formatted sheet data
-    const completeMessage = formattedSheetData 
+    const completeMessage = formattedSheetData
       ? `${userMessage}\n\nSpreadsheet Data:\n${formattedSheetData}`
       : userMessage;
 
@@ -214,11 +284,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Update initial status
   updateStatus("Your Spreadsheets Copilot is ready!");
-  
+
   // Event listener for the "Ask LLM" button
   const askLlmButton = document.getElementById("ask-llm");
   const copyBtn = document.getElementById("copy-btn");
-  
+
   if (askLlmButton) {
     askLlmButton.addEventListener("click", async function () {
       const userPromptElement = document.getElementById("user-prompt");
@@ -234,6 +304,9 @@ document.addEventListener("DOMContentLoaded", function () {
 You are a Spreadsheets Copilot called Hungry Llama, a spreadsheets assistant that helps users analyze data and create formulas.
 You specialize in both Google Sheets and Excel formulas and functions.
 
+IMPORTANT: Always reference columns by their letter (A, B, C, etc.) and rows by their number.
+For example, if column B contains "age" data, refer to it as column B or B2:B6 in your formulas, not as "the age column".
+
 When given spreadsheet data:
 1. Analyze the structure and content of the data to understand what it represents
 2. Provide concise and helpful responses for spreadsheet-related questions
@@ -244,7 +317,7 @@ When given spreadsheet data:
 
 Your answers should be practical and easy to implement.
 Avoid unnecessary technical jargon unless specifically asked for it.
-Response with only the formula or code needed, and no additional explanations by default.
+Respond with only the formula or code needed, and no additional explanations by default.
 `;
 
       // Call the LLM with sheet data if available
@@ -268,7 +341,7 @@ Response with only the formula or code needed, and no additional explanations by
       }
     });
   }
-  
+
   // Event listener for copy button
   if (copyBtn) {
     copyBtn.addEventListener("click", function () {
@@ -304,8 +377,6 @@ Response with only the formula or code needed, and no additional explanations by
     });
   }
 });
-
-
 
 // ==================================== READING SHEETS ====================================
 
@@ -410,11 +481,11 @@ async function getSelectedRange(token, spreadsheetId) {
 function populateSheetInfo(sheetInfo) {
   const infoDiv = document.getElementById("selected-sheet-info");
   if (!infoDiv) return;
-  
+
   // Create a summary of the sheet data
   let rowCount = sheetInfo.data.length;
   let colCount = rowCount > 0 ? sheetInfo.data[0].length : 0;
-  
+
   // Create a sample of the data (first few cells)
   let dataSample = "";
   if (rowCount > 0 && colCount > 0) {
@@ -423,19 +494,19 @@ function populateSheetInfo(sheetInfo) {
       dataSample = `<p><strong>A1:</strong> ${sheetInfo.data[0][0]}</p>`;
     }
   }
-  
+
   // Prepare table preview for the first few rows (max 5)
   let tablePreview = '<table class="sheet-preview">';
   const maxRows = Math.min(5, rowCount);
   const maxCols = Math.min(5, colCount);
-  
+
   // Add header row with column letters
   tablePreview += "<tr><th></th>";
   for (let c = 0; c < maxCols; c++) {
     tablePreview += `<th>${columnToLetter(c + 1)}</th>`;
   }
   tablePreview += "</tr>";
-  
+
   // Add data rows
   for (let r = 0; r < maxRows; r++) {
     tablePreview += `<tr><th>${r + 1}</th>`;
@@ -447,7 +518,7 @@ function populateSheetInfo(sheetInfo) {
     tablePreview += "</tr>";
   }
   tablePreview += "</table>";
-  
+
   // Update the UI
   infoDiv.innerHTML = `
     <h4>Active Sheet Information:</h4>
@@ -474,7 +545,6 @@ function columnToLetter(column) {
   return letter;
 }
 
-
 // async function getAuthToken() {
 //   console.log("Requesting auth token...");
 //   return new Promise((resolve, reject) => {
@@ -497,34 +567,43 @@ function columnToLetter(column) {
 async function getAuthToken() {
   console.log("Requesting auth token...");
   console.log("Extension ID:", chrome.runtime.id);
-  
+
   // Debug manifest info
   const manifest = chrome.runtime.getManifest();
   console.log("OAuth config from manifest:", manifest.oauth2);
-  
+
   return new Promise((resolve, reject) => {
-    const options = { 
-      interactive: true
+    const options = {
+      interactive: true,
       // Remove the 'details' property - it's not a valid option
     };
-    
-    chrome.identity.getAuthToken(options, function(token) {
+
+    chrome.identity.getAuthToken(options, function (token) {
       if (chrome.runtime.lastError) {
         console.error("Authentication error:", chrome.runtime.lastError);
-        console.error("Error details:", JSON.stringify(chrome.runtime.lastError));
-        
+        console.error(
+          "Error details:",
+          JSON.stringify(chrome.runtime.lastError)
+        );
+
         // Try to get more details about the error
-        if (chrome.runtime.lastError.message && chrome.runtime.lastError.message.includes("bad client id")) {
+        if (
+          chrome.runtime.lastError.message &&
+          chrome.runtime.lastError.message.includes("bad client id")
+        ) {
           console.error("Client ID issue detected - checking configuration...");
           // Log current extension ID vs what might be registered
           console.log("Current extension ID:", chrome.runtime.id);
-          console.log("OAuth Client ID from manifest:", manifest.oauth2?.client_id);
+          console.log(
+            "OAuth Client ID from manifest:",
+            manifest.oauth2?.client_id
+          );
         }
-        
+
         reject(chrome.runtime.lastError);
         return;
       }
-      
+
       console.log("Successfully obtained auth token!");
       console.log("Token exists:", !!token);
       console.log("Token length:", token ? token.length : 0);
@@ -532,10 +611,8 @@ async function getAuthToken() {
       if (token) {
         console.log("Token preview:", token.substring(0, 5) + "...");
       }
-      
+
       resolve(token);
     });
   });
 }
-
-
