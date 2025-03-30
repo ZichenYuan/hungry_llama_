@@ -84,54 +84,50 @@ async function getAuthClient() {
     return oauth2Client;
 }
 
+function getValues(spreadsheetId, range, callback) {
+    try {
+      sheets.spreadsheets.values.get({
+        spreadsheetId: spreadsheetId,
+        range: range,
+      }).then((response) => {
+        const result = response.result;
+        const numRows = result.values ? result.values.length : 0;
+        console.log(`${numRows} rows retrieved.`);
+        if (callback) callback(response);
+      });
+    } catch (err) {
+      document.getElementById('content').innerText = err.message;
+      return;
+    }
+  }
+
+function printResponse(response) {
+  console.log('Spreadsheet response:', response);
+}
+
 async function main() {
     try {
         const auth = await getAuthClient();
         const sheets = google.sheets({ version: 'v4', auth });
         
-        // First get the spreadsheet metadata
-        const metadata = await sheets.spreadsheets.get({
-            spreadsheetId: '1og5gsFY1SKIRNANwFgtg_8dEgpnFocRIgg6zNvyC23U',
+        // Test the connection by getting spreadsheet metadata
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: '1dRqe-ez6yNdbSEt7D4d_yBlchfLECgvZX0Z6UBYePJY',
+            range: "A1:B6"
         });
+
+        console.log(response.data.values);
+
+        // Try printing response
         
         console.log('Successfully connected to Google Sheets!');
+        // console.log('Spreadsheet title:', response.data.properties.title);
         console.log('Spreadsheet title:', metadata.data.properties.title);
         
         // Get all sheets in the spreadsheet
-        const sheetsList = metadata.data.sheets;
         console.log('\nAvailable sheets:');
-        sheetsList.forEach(sheet => {
-            console.log(`- ${sheet.properties.title}`);
-        });
-
-        // Read data from each sheet
-        for (const sheet of sheetsList) {
-            const sheetTitle = sheet.properties.title;
-            console.log(`\nReading data from sheet: ${sheetTitle}`);
-            
-            try {
-                const response = await sheets.spreadsheets.values.get({
-                    spreadsheetId: '1og5gsFY1SKIRNANwFgtg_8dEgpnFocRIgg6zNvyC23U',
-                    range: sheetTitle,
-                });
-
-                const rows = response.data.values;
-                if (rows && rows.length) {
-                    console.log('Data:');
-                    rows.forEach((row, index) => {
-                        console.log(`Row ${index + 1}:`, row.join(', '));
-                    });
-                } else {
-                    console.log('No data found in this sheet.');
-                }
-            } catch (error) {
-                console.error(`Error reading sheet ${sheetTitle}:`, error.message);
-            }
-        }
-        
-    } catch (error) {
-        console.error('Error:', error);
+    }
+    catch(error){
+        console.log(error);
     }
 }
-
-main();
