@@ -35,7 +35,7 @@ export default {
             return content
               .toString()
               .replace(
-                /REPLACE_WITH_YOUR_CLIENT_ID_FROM_ENV_FILE/g,
+                /\${CLIENT_ID}/g,
                 process.env.GOOGLE_CLIENT_ID || "MISSING_CLIENT_ID"
               );
           },
