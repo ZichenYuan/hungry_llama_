@@ -20,8 +20,8 @@ module.exports = {
         { from: 'popup.html' },
         { from: 'images', to: 'images' },
         { from: 'styles.css'},
-        { from : 'options.html' },
-        { from : 'options.css' },
+        { from: 'options.html' },
+        { from: 'options.css' },
       ],
     }),
   ]

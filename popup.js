@@ -118,15 +118,13 @@ async function chatWithAI(userMessage, systemPrompt = "answer user message") {
 
 // ==================================== HELPER ====================================
 
+
+// Update the event listener for the "Configure API key" link
 document.getElementById('open-options').addEventListener('click', function() {
-    if (chrome.runtime.openOptionsPage) {
-      chrome.runtime.openOptionsPage();
-    } else {
-      window.open(chrome.runtime.getURL('options.html'));
-    }
+    window.open(chrome.runtime.getURL('options.html'));
   });
-  
-async function getApiKey() {
+
+  async function getApiKey() {
   return new Promise((resolve) => {
     chrome.storage.sync.get(["groqApiKey"], function (result) {
       resolve(result.groqApiKey || null);
@@ -169,11 +167,13 @@ document.addEventListener("DOMContentLoaded", function () {
   copyBtn.addEventListener("click", function () {
     const text = document.getElementById("llm-response").innerText;
     console.log("Text to copy:", text);
-    navigator.clipboard.writeText(text).then(() => {
-      alert("Copied to clipboard!");
-    }).catch(err => {
-      console.error("Failed to copy text: ", err);
-    });
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        alert("Copied to clipboard!");
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
   });
 });
-
