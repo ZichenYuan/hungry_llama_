@@ -15,8 +15,8 @@ npm run build # single final build
 4. Click **Load unpacked** (top-left or top-right depending on your Chrome version).  
 5. Choose the `dist` folder in your repository.
 > 🔄 Changes should auto-update during development unless you modify the config file.
-<img src="![image](https://github.com/user-attachments/assets/1e02d9ff-281f-4027-97d6-bb4431e50c6c)
-" width="300"/>
+> 
+<img src="https://github.com/user-attachments/assets/1e02d9ff-281f-4027-97d6-bb4431e50c6c" width="300"/>
 
 
 
