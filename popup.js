@@ -16,21 +16,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Update initial status
   updateStatus("Extension loaded successfully!");
-
-  // Add button click handlers
-  document.getElementById("authorize").addEventListener("click", function () {
-    updateStatus("Authorization feature coming soon!");
-  });
-
-  document.getElementById("read-sheet").addEventListener("click", function () {
-    updateStatus("Sheet reading feature coming soon!");
-  });
-
-  document
-    .getElementById("analyze-data")
-    .addEventListener("click", function () {
-      updateStatus("Analysis feature coming soon!");
-    });
 });
 
 // ==================================== LLM INTERACTION ====================================
@@ -118,13 +103,12 @@ async function chatWithAI(userMessage, systemPrompt = "answer user message") {
 
 // ==================================== HELPER ====================================
 
-
 // Update the event listener for the "Configure API key" link
-document.getElementById('open-options').addEventListener('click', function() {
-    window.open(chrome.runtime.getURL('options.html'));
-  });
+document.getElementById("open-options").addEventListener("click", function () {
+  window.open(chrome.runtime.getURL("options.html"));
+});
 
-  async function getApiKey() {
+async function getApiKey() {
   return new Promise((resolve) => {
     chrome.storage.sync.get(["groqApiKey"], function (result) {
       resolve(result.groqApiKey || null);
