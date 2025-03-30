@@ -57,7 +57,8 @@ body {
     background-color: #f3f5fa;
     border: 1px solid #e6e8ec;
     border-radius: 8px 0 0 8px;
-    color: #8c929d;
+    color: #000000;
+    font-size: 14px;
     font-family: sans-serif;
     overflow-x: auto;
     white-space: nowrap;
