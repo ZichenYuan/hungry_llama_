@@ -1,7 +1,7 @@
-const path = require("path");
-const CopyPlugin = require("copy-webpack-plugin");
+import path from "path";
+import CopyPlugin from "copy-webpack-plugin";
 
-module.exports = {
+export default {
   mode: "development",
   devtool: "source-map",
   entry: {
@@ -10,7 +10,7 @@ module.exports = {
     history: './history.js'
   },
   output: {
-    path: path.resolve(__dirname, "dist"),
+    path: path.resolve("dist"),
     filename: "[name].js",
     clean: true,
   },
