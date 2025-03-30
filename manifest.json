@@ -11,7 +11,8 @@
   ],
   "host_permissions": [
     "https://docs.google.com/spreadsheets/*",
-    "https://sheets.googleapis.com/*"
+    "https://sheets.googleapis.com/*",
+    "http://localhost:1234/"
   ],
   "action": {
     "default_popup": "popup.html",

@@ -31,3 +31,7 @@ body {
     border: 1px solid #ccc;
     padding: 8px;
   }
+  #user-prompt {
+    width: 100%;
+    margin-bottom: 10px;
+  }
