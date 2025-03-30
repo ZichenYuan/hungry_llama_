@@ -3,12 +3,14 @@ import http from 'http';
 import url from 'url';
 import open from 'open';
 import dotenv from 'dotenv';
+import fs from 'fs';
 
 // Load environment variables
 dotenv.config();
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+const TOKEN_PATH = 'token.json';
 
 async function getAuthClient() {
     const oauth2Client = new google.auth.OAuth2(
@@ -17,6 +19,21 @@ async function getAuthClient() {
         'http://localhost:8080'
     );
 
+    // Check if we have stored tokens
+    if (fs.existsSync(TOKEN_PATH)) {
+        const tokens = JSON.parse(fs.readFileSync(TOKEN_PATH));
+        oauth2Client.setCredentials(tokens);
+        
+        // Check if token is expired
+        if (tokens.expiry_date && tokens.expiry_date > Date.now()) {
+            console.log('Using stored authentication tokens');
+            return oauth2Client;
+        }
+    }
+
+    // If no valid tokens, get new ones
+    console.log('No valid tokens found. Getting new authentication...');
+    
     // Create a promise to handle the authorization code
     const authCodePromise = new Promise((resolve) => {
         const server = http.createServer(async (req, res) => {
@@ -60,6 +77,10 @@ async function getAuthClient() {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
+    // Store the tokens for future use
+    fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens, null, 2));
+    console.log('Tokens stored for future use');
+
     return oauth2Client;
 }
 
@@ -68,13 +89,45 @@ async function main() {
         const auth = await getAuthClient();
         const sheets = google.sheets({ version: 'v4', auth });
         
-        // Test the connection by getting spreadsheet metadata
-        const response = await sheets.spreadsheets.get({
-            spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
+        // First get the spreadsheet metadata
+        const metadata = await sheets.spreadsheets.get({
+            spreadsheetId: '1og5gsFY1SKIRNANwFgtg_8dEgpnFocRIgg6zNvyC23U',
         });
         
         console.log('Successfully connected to Google Sheets!');
-        console.log('Spreadsheet title:', response.data.properties.title);
+        console.log('Spreadsheet title:', metadata.data.properties.title);
+        
+        // Get all sheets in the spreadsheet
+        const sheetsList = metadata.data.sheets;
+        console.log('\nAvailable sheets:');
+        sheetsList.forEach(sheet => {
+            console.log(`- ${sheet.properties.title}`);
+        });
+
+        // Read data from each sheet
+        for (const sheet of sheetsList) {
+            const sheetTitle = sheet.properties.title;
+            console.log(`\nReading data from sheet: ${sheetTitle}`);
+            
+            try {
+                const response = await sheets.spreadsheets.values.get({
+                    spreadsheetId: '1og5gsFY1SKIRNANwFgtg_8dEgpnFocRIgg6zNvyC23U',
+                    range: sheetTitle,
+                });
+
+                const rows = response.data.values;
+                if (rows && rows.length) {
+                    console.log('Data:');
+                    rows.forEach((row, index) => {
+                        console.log(`Row ${index + 1}:`, row.join(', '));
+                    });
+                } else {
+                    console.log('No data found in this sheet.');
+                }
+            } catch (error) {
+                console.error(`Error reading sheet ${sheetTitle}:`, error.message);
+            }
+        }
         
     } catch (error) {
         console.error('Error:', error);
