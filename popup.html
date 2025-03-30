@@ -17,7 +17,10 @@
         <h3>LLM Assistant</h3>
         <textarea id="user-prompt" placeholder="Ask a question about your Excel data..." rows="3"></textarea>
         <button id="ask-llm">Ask LLM</button>
-        <div id="llm-response" class="response-area"></div>
+        <div class="response-container">
+          <div id="llm-response" class="response-area"></div>
+          <button id="copy-btn">Copy</button>
+        </div>
       </div>
     <script src="popup.js"></script>
 </body>

@@ -122,3 +122,17 @@ document.getElementById("ask-llm").addEventListener("click", async function () {
   responseDiv.textContent = response;
   responseDiv.style.display = "block";
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  const copyBtn = document.getElementById("copy-btn");
+  copyBtn.addEventListener("click", function () {
+    const text = document.getElementById("llm-response").innerText;
+    console.log("Text to copy:", text);
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Copied to clipboard!");
+    }).catch(err => {
+      console.error("Failed to copy text: ", err);
+    });
+  });
+});
+
