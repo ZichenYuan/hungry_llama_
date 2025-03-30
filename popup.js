@@ -2,11 +2,16 @@
 console.log("Excel Copilot loaded");
 
 // Function to update status
-function updateStatus(message) {
+function updateStatus(message, isError = false) {
   const statusDiv = document.getElementById("status");
   if (statusDiv) {
     statusDiv.textContent = message;
     console.log("Status updated:", message);
+  }
+  if (isError) {
+    statusDiv.style.color = "red";
+  } else {
+    statusDiv.style.color = "green";
   }
 }
 
@@ -32,7 +37,7 @@ async function chatWithAI(userMessage, systemPrompt = "answer user message") {
 
     if (!apiKey) {
       updateStatus(
-        "API key not found. Please set your Groq API key in the options."
+        "API key not found. Please set your Groq API key in the options.", true
       );
       return "Error: API key not configured. Please set your Groq API key in the extension options.";
     }
