@@ -119,6 +119,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Update initial status
   updateStatus("Extension loaded successfully!");
+    // Populate selected sheet info with sample data for testing
+    const selectedSheetInfo = document.getElementById("selected-sheet-info");
+    if (selectedSheetInfo) {
+      // Sample data - in a real implementation, this would come from the active sheet
+      selectedSheetInfo.innerHTML = `
+        <h4>Selected Cell Information:</h4>
+        <p><strong>Cell:</strong> A1</p>
+        <p><strong>Value:</strong> Sales</p>
+        <p><strong>Formula:</strong> None</p>
+        <p><strong>Range:</strong> A1:D5</p>
+      `;
+    }
 
   // Event listener for the "Ask LLM" button
   const askLlmButton = document.getElementById("ask-llm");
@@ -159,16 +171,16 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       // Display the response
+      let responseRow = document.getElementsByClassName("response-row")[0]; // Get the first match
       const responseDiv = document.getElementById("llm-response");
-      const copyBtn = document.getElementById("copy-btn");
 
       if (responseDiv) {
         responseDiv.textContent = response;
         responseDiv.style.display = "block";
       }
 
-      if (copyBtn && response && response.trim()) {
-        copyBtn.style.display = "block";
+      if (responseRow && copyBtn && response && response.trim()) {
+        responseRow.style.display = "block";
       }
     });
   }
